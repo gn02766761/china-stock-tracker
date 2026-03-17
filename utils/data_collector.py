@@ -108,14 +108,17 @@ class StockDataCollector:
         elif source == 'yfinance':
             return self.get_stock_data_yfinance(symbol, start_date, end_date)
         else:
-            # Auto-select: try tushare first, fall back to yfinance
+            # Auto-select: try tushare first
             if self.pro:
                 data = self.get_stock_data_tushare(symbol, start_date, end_date)
                 if data is not None and not data.empty:
                     return data
-            
-            # Fallback to yfinance
-            return self.get_stock_data_yfinance(symbol, start_date, end_date)
+                else:
+                    print(f"Tushare 无数据，请检查 token 或股票代码")
+                    return None
+            else:
+                print("未配置 Tushare token，请访问 https://tushare.pro/ 注册获取")
+                return None
     
     def calculate_technical_indicators(self, df):
         """

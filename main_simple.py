@@ -1,5 +1,5 @@
 """
-股票分析系统 - 主程序
+股票分析系统 - 简化版主程序
 
 基于 Tushare 数据源的股票分析和推荐系统
 """
@@ -23,18 +23,38 @@ def main():
     print("中国股票分析推荐系统")
     print("=" * 70)
     
-    # 初始化模块 - 检查 Tushare token
+    # 初始化模块
     print("\n初始化系统...")
-    token = init_tushare()
     
-    if not token:
-        print("\n⚠ 未配置 Tushare token，无法获取真实数据")
-        print("\n获取 token 步骤:")
-        print("1. 访问 https://tushare.pro/ 注册账号")
-        print("2. 登录后在个人中心获取 token")
-        print("3. 设置环境变量：set TUSHARE_TOKEN=your_token")
-        print("4. 重新运行本程序")
-        return
+    # 检查 Tushare token
+    token = None
+    try:
+        import tushare as ts
+        import os
+        token = os.getenv('TUSHARE_TOKEN')
+        
+        if not token:
+            print("=" * 70)
+            print("Tushare 配置")
+            print("=" * 70)
+            print("\n访问 https://tushare.pro/ 注册获取免费 token")
+            try:
+                token = input("请输入 Tushare token (或按回车跳过): ").strip()
+            except (EOFError, KeyboardInterrupt):
+                print("\n⚠ 未配置 token，部分功能受限")
+            
+            if token:
+                ts.set_token(token)
+                print("✓ Tushare token 已配置")
+            else:
+                print("⚠ 未配置 token，部分功能受限")
+        else:
+            ts.set_token(token)
+            print("✓ 从环境变量加载 Tushare token")
+            
+    except ImportError:
+        print("⚠ 未安装 tushare")
+        print("安装：pip install tushare")
     
     collector = StockDataCollector(token=token)
     strategy_analyzer = StockStrategyAnalyzer(initial_cash=1000000)
@@ -58,7 +78,13 @@ def main():
     
     # 收集数据
     print(f"\n获取 {stock_symbol} 数据...")
-    stock_data = collector.get_stock_data(stock_symbol, start_date, end_date)
+    
+    if token:
+        stock_data = collector.get_stock_data(stock_symbol, start_date, end_date)
+    else:
+        print("⚠ 未配置 Tushare token，无法获取真实数据")
+        print("请先配置 token 后重试")
+        return
     
     if stock_data is None or stock_data.empty:
         print(f"无法获取 {stock_symbol} 的数据")
@@ -89,55 +115,25 @@ def main():
     except (EOFError, KeyboardInterrupt):
         mode_choice = '1'
     
-    if mode_choice == '2':
+    if mode_choice == '1':
+        # 单个策略分析
+        run_strategy_analysis(stock_symbol, stock_data, strategy_analyzer)
+    elif mode_choice == '2':
+        # 比较所有策略
         run_strategy_comparison(stock_symbol, stock_data, strategy_analyzer)
     elif mode_choice == '3':
+        # 股票推荐
         run_stock_recommendation(stock_data, stock_symbol, recommender)
     elif mode_choice == '4':
         print("\n感谢使用，再见!")
         return
     else:
-        run_strategy_analysis(stock_symbol, stock_data, strategy_analyzer)
+        print("无效选择")
+        return
     
     print("\n" + "=" * 70)
     print("分析完成!")
     print("=" * 70)
-
-
-def init_tushare():
-    """初始化 Tushare"""
-    try:
-        import tushare as ts
-        import os
-        
-        token = os.getenv('TUSHARE_TOKEN')
-        
-        if not token:
-            print("=" * 70)
-            print("Tushare 配置")
-            print("=" * 70)
-            print("\n访问 https://tushare.pro/ 注册获取免费 token")
-            try:
-                token = input("请输入 Tushare token (或按回车跳过): ").strip()
-            except (EOFError, KeyboardInterrupt):
-                print("\n⚠ 未配置 token")
-                return None
-            
-            if token:
-                ts.set_token(token)
-                print("✓ Tushare token 已配置")
-                return token
-            else:
-                return None
-        else:
-            ts.set_token(token)
-            print("✓ 从环境变量加载 Tushare token")
-            return token
-            
-    except ImportError:
-        print("⚠ 未安装 tushare")
-        print("安装：pip install tushare")
-        return None
 
 
 def run_strategy_analysis(stock_symbol, stock_data, strategy_analyzer):
