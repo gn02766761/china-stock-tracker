@@ -13,6 +13,8 @@
 - ✅ **投资组合管理**
 - ✅ **策略回测引擎**
 - ✅ **SQLite 数据库存储**
+- ✅ **Web 可视化仪表盘**（新增）⭐
+- ✅ **实时行情预警**（新增）⭐
 
 ---
 
@@ -58,6 +60,54 @@ python run_stock_recommender.py
 
 ---
 
+## 🆕 Web 可视化与实时监控（新增）
+
+### 方式 1: 启动 Web 仪表盘（推荐）
+
+```bash
+# 步骤 1: 安装 Web 依赖
+pip install -r requirements_web.txt
+
+# 步骤 2: 启动股票分析仪表盘
+streamlit run web_app/dashboard.py
+
+# 步骤 3: 启动预警监控面板（新窗口）
+streamlit run web_app/alert_dashboard.py
+```
+
+**访问地址**: 
+- 主仪表盘：http://localhost:8501
+- 预警监控：http://localhost:8502
+
+### 方式 2: 使用启动脚本
+
+```bash
+python start_monitor.py
+# 选择菜单选项启动对应服务
+```
+
+### 方式 3: 运行演示程序
+
+```bash
+# 测试预警和通知功能
+python run_monitor_demo.py
+```
+
+### 功能特性
+
+| 功能 | 说明 | 状态 |
+|------|------|------|
+| 📊 **交互式 K 线图** | Plotly 可视化，支持缩放 | ✅ |
+| 🎯 **智能股票推荐** | 6 种策略综合评分 | ✅ |
+| 🔍 **股票筛选器** | 多维度条件筛选 | ✅ |
+| 🚨 **实时价格预警** | 止损止盈自动通知 | ✅ |
+| 💼 **投资组合管理** | 持仓跟踪与盈亏计算 | ✅ |
+| 📈 **策略回测** | 策略收益对比 | ✅ |
+| 📧 **邮件通知** | SMTP 邮件推送 | ✅ |
+| 💬 **微信通知** | ServerChan 推送 | ✅ |
+
+---
+
 ## 📦 项目结构
 
 ```
@@ -73,6 +123,18 @@ China_stock_trade/
 │   ├── update_prices.py                 # 价格更新器
 │   ├── run_strategy_demo.py             # 策略演示
 │   └── run_stock_recommender.py         # 推荐系统 UI
+│
+├── Web 可视化（新增）⭐
+│   ├── web_app/
+│   │   ├── dashboard.py                 # 股票分析仪表盘 ⭐
+│   │   └── alert_dashboard.py           # 预警监控面板 ⭐
+│   ├── start_monitor.py                 # 启动脚本
+│   └── run_monitor_demo.py              # 演示程序
+│
+├── 实时监控（新增）⭐
+│   ├── realtime_monitor.py              # 实时监控引擎 ⭐
+│   ├── price_alert.py                   # 价格预警模块 ⭐
+│   └── notification_service.py          # 通知服务 ⭐
 │
 ├── 策略模块 (strategies/)
 │   ├── base_strategy.py                 # 基础策略类
@@ -93,17 +155,22 @@ China_stock_trade/
 │   ├── data/
 │   │   ├── stock_data.db                # 股票数据库 (SQLite)
 │   │   ├── portfolio.db                 # 组合管理数据库
+│   │   ├── alerts.json                  # 预警配置（新增）⭐
 │   │   ├── stock_recommendations_*.md   # 推荐报告
 │   │   └── screen_*.csv                 # 筛选结果
 │   └── queries.sql                      # SQL 查询集
 │
+├── 配置
+│   └── config/
+│       └── config.json                  # 系统配置 ⭐
+│
 └── 文档
     ├── README.md                        # 本文件
-    ├── IMPORT_TUSHARE_GUIDE.md          # Tushare 导入指南 ⭐
+    ├── WEB_APP_GUIDE.md                 # Web 应用使用指南 ⭐
+    ├── IMPORT_TUSHARE_GUIDE.md          # Tushare 导入指南
     ├── DATABASE_GUIDE.md                # 数据库使用指南
     ├── STOCK_RECOMMENDER_README.md      # 推荐系统说明
     ├── STRATEGIES_README.md             # 策略详细说明
-    ├── TEST_REPORT.md                   # 测试报告
     └── INSTALL_TENSORFLOW.md            # TensorFlow 安装指南
 ```
 
@@ -273,7 +340,9 @@ LIMIT 10;
 | 文档 | 说明 |
 |------|------|
 | [README.md](README.md) | 项目总览（本文件） |
-| [IMPORT_TUSHARE_GUIDE.md](IMPORT_TUSHARE_GUIDE.md) | Tushare 数据导入指南 ⭐ |
+| [WEB_APP_GUIDE.md](WEB_APP_GUIDE.md) | Web 应用使用指南 ⭐⭐⭐ |
+| [WEB_APP_SUMMARY.md](WEB_APP_SUMMARY.md) | Web 项目总结 ⭐⭐ |
+| [IMPORT_TUSHARE_GUIDE.md](IMPORT_TUSHARE_GUIDE.md) | Tushare 数据导入指南 |
 | [DATABASE_GUIDE.md](DATABASE_GUIDE.md) | 数据库使用指南 |
 | [STOCK_RECOMMENDER_README.md](STOCK_RECOMMENDER_README.md) | 推荐系统说明 |
 | [STRATEGIES_README.md](STRATEGIES_README.md) | 策略详细说明 |
@@ -362,9 +431,51 @@ python import_tushare_data.py
 
 **A**: 不必须。TensorFlow 仅用于 LSTM 深度学习预测，核心功能（策略分析、推荐）不需要 TensorFlow。
 
+### Q5: 如何启动 Web 界面？
+
+**A**:
+```bash
+# 安装依赖
+pip install -r requirements_web.txt
+
+# 启动 Web 仪表盘
+streamlit run web_app/dashboard.py
+```
+
+### Q6: 如何设置价格预警？
+
+**A**:
+```python
+from price_alert import PriceAlertManager
+
+manager = PriceAlertManager()
+manager.create_price_breakout_alert(
+    symbol="000001",
+    name="平安银行",
+    breakout_price=10.5,
+    above=True
+)
+```
+
+### Q7: 如何配置邮件通知？
+
+**A**:
+1. 获取邮箱授权码（非登录密码）
+2. 运行 `python run_monitor_demo.py` 测试
+3. 或在 Web 界面配置通知设置
+
 ---
 
 ## 📝 更新日志
+
+### v4.0 - Web 可视化与实时监控版 (2026-03-21) ⭐
+- ✅ 添加 Streamlit Web 可视化仪表盘
+- ✅ 添加实时行情监控引擎
+- ✅ 添加价格预警系统
+- ✅ 添加通知服务（邮件/微信）
+- ✅ 添加预警监控 Web 界面
+- ✅ 新增 10 个文件，约 3100 行代码
+- ✅ 完善文档系统（2 个新文档）
 
 ### v3.0 - Tushare 数据导入版 (2026-03)
 - ✅ 添加 Tushare 数据导入工具
@@ -393,18 +504,22 @@ python import_tushare_data.py
 1. 运行 `python run_strategy_demo.py` 查看策略演示
 2. 阅读 [STRATEGIES_README.md](STRATEGIES_README.md) 了解策略
 3. 运行 `python main.py` 分析股票
+4. **新**: 启动 Web 界面 `streamlit run web_app/dashboard.py`
 
 ### 进阶用户
 1. 配置 Tushare token
 2. 导入真实数据：`python import_tushare_data.py`
 3. 使用筛选器：`python stock_screener.py`
 4. 管理投资组合：`python portfolio_manager.py`
+5. **新**: 设置价格预警：`python run_monitor_demo.py`
 
 ### 高级用户
 1. 修改策略参数
 2. 添加自定义策略
 3. 使用 SQL 查询深度分析
 4. 扩展系统功能
+5. **新**: 配置邮件/微信通知
+6. **新**: 使用实时监控 API
 
 ---
 
@@ -427,6 +542,6 @@ Always do your own research and consult with qualified professionals before maki
 
 ---
 
-*最后更新：2026 年 3 月 17 日*  
-*版本：v3.0 - Tushare 数据导入版*  
-*测试状态：✅ 所有核心功能测试通过*
+*最后更新：2026 年 3 月 22 日*
+*版本：v4.0 - Web 可视化与实时监控版*
+*测试状态：✅ 所有核心功能测试通过（演示程序运行成功）*
